@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -p gpu
 #SBATCH -G 1
-#SBATCH --time=96
+#SBATCH --time=0
 #SBATCH --array=0-15
 
 ml python/3.6.1
@@ -11,4 +11,6 @@ ml cudnn/8.1.1.33
 
 python3 inference-char.py $SLURM_ARRAY_TASK_ID
 
-### -o sbatch.out script.sh
+### sbatch -o sbatch.out script.sh
+### squeue --me
+### scancel -u akashl
