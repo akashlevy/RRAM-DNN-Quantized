@@ -14,6 +14,11 @@ import tensorflow.keras as keras
 from tensorflow.keras import backend as K
 from tensorflow.keras.models import load_model
 from tensorflow.keras.datasets import cifar10
+import argparse
+
+parser = argparse.ArgumentParser(description='Inference characterization.')
+parser.add_argument('i', type=int, help='i value to process')
+args = parser.parse_args()
 
 # %% [markdown]
 # ## Configure DNN settings
@@ -127,54 +132,54 @@ for layer_name in weights:
 
 # %%
 # Create weight matrices after RRAM relaxation according to the confusion matrices (4 levels per cell)
-for seed in range(10):
+for seed in range(50):
     # Set random seed for statistics
     np.random.seed(seed)
 
     # Sweep indices
-    for i in range(16):
-        for j in range(16):
-            # Ignore diagonal entries
-            if i == j:
-                continue
+    i = args.i
+    for j in range(16):
+        # Ignore diagonal entries
+        if i == j:
+            continue
 
-            # Sweep BERs
-            for ber in 10.**np.linspace(-8, 0, 17):
-                # Log
-                print(f'Doing {seed}\t{i}\t{j}\t{ber}')
+        # Sweep BERs
+        for ber in 10.**np.linspace(-6, 0, 13):
+            # Log
+            print(f'Doing {seed}\t{i}\t{j}\t{ber}')
 
-                # Create confusion matrix
-                C = np.eye(16)
-                C[i][i] = 1-ber
-                C[i][j] = ber
+            # Create confusion matrix
+            C = np.eye(16)
+            C[i][i] = 1-ber
+            C[i][j] = ber
 
-                # Perturb weights under confmat error model
-                weights_perturb = {}
-                for layer_name in weights:
-                    if 'conv2d' in layer_name or 'dense' in layer_name:
-                        W, b, W_max = weights[layer_name]
+            # Perturb weights under confmat error model
+            weights_perturb = {}
+            for layer_name in weights:
+                if 'conv2d' in layer_name or 'dense' in layer_name:
+                    W, b, W_max = weights[layer_name]
 
-                        # Perturb based on confusion matrix
-                        perturb = lambda x : np.random.choice(16, p=C[x])
-                        weights_perturb[layer_name] = np.vectorize(perturb)(weights_enci[layer_name])
+                    # Perturb based on confusion matrix
+                    perturb = lambda x : np.random.choice(16, p=C[x])
+                    weights_perturb[layer_name] = np.vectorize(perturb)(weights_enci[layer_name])
 
-                        # Scale back to weight value
-                        depositivize = lambda x : x - 1 if x > 7 else x
-                        weights_perturb[layer_name] = (np.vectorize(depositivize)(weights_perturb[layer_name]) - 7) * W_max / 7
+                    # Scale back to weight value
+                    depositivize = lambda x : x - 1 if x > 7 else x
+                    weights_perturb[layer_name] = (np.vectorize(depositivize)(weights_perturb[layer_name]) - 7) * W_max / 7
 
-                # Load relaxed weights back to the model
-                for layer in model.layers:
-                    if layer.name in weights_perturb:
-                        W, b, W_max = layer.get_weights()
-                        layer.set_weights([weights_perturb[layer.name], b, W_max])
+            # Load relaxed weights back to the model
+            for layer in model.layers:
+                if layer.name in weights_perturb:
+                    W, b, W_max = layer.get_weights()
+                    layer.set_weights([weights_perturb[layer.name], b, W_max])
 
-                # Evaluate accuracy after relaxation
-                loss, accuracy = model.evaluate(x_test, y_test, verbose=1)
+            # Evaluate accuracy after relaxation
+            loss, accuracy = model.evaluate(x_test, y_test, verbose=1)
 
-                # Append results to file
-                with open('char.tsv', 'a') as outf:
-                    print(f'{seed}\t{i}\t{j}\t{ber}\t{loss}\t{accuracy}\n')
-                    outf.write(f'{seed}\t{i}\t{j}\t{ber}\t{loss}\t{accuracy}\n')
+            # Append results to file
+            with open(f'char-{i}.tsv', 'a') as outf:
+                print(f'{seed}\t{i}\t{j}\t{ber}\t{loss}\t{accuracy}\n')
+                outf.write(f'{seed}\t{i}\t{j}\t{ber}\t{loss}\t{accuracy}\n')
 
 # %% [markdown]
 # TODO: get weight freqs
