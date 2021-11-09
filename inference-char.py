@@ -144,7 +144,7 @@ for seed in range(50):
             continue
 
         # Sweep BERs
-        for ber in 10.**np.linspace(-6, 0, 13):
+        for ber in 10.**np.linspace(-3, 0, 17):
             # Log
             print(f'Doing {seed}\t{i}\t{j}\t{ber}')
 
