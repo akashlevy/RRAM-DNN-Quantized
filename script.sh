@@ -1,6 +1,5 @@
 #!/bin/bash
 #SBATCH -p gpu
-#SBATCH -c 10
 #SBATCH -G 1
 #SBATCH --time=96
 #SBATCH --array=0-15
