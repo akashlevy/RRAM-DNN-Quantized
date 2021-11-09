@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -p gpu
 #SBATCH -G 1
-#SBATCH --time=0
+#SBATCH --time=3-0
 #SBATCH --array=0-15
 
 ml python/3.6.1
