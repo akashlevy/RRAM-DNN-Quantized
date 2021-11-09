@@ -177,7 +177,7 @@ for seed in range(50):
             loss, accuracy = model.evaluate(x_test, y_test, verbose=1)
 
             # Append results to file
-            with open(f'char-{i}.tsv', 'a') as outf:
+            with open(f'out/char-{i}.tsv', 'a') as outf:
                 print(f'{seed}\t{i}\t{j}\t{ber}\t{loss}\t{accuracy}\n')
                 outf.write(f'{seed}\t{i}\t{j}\t{ber}\t{loss}\t{accuracy}\n')
 
