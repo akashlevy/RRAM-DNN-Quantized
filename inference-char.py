@@ -132,13 +132,13 @@ for layer_name in weights:
 
 # %%
 # Create weight matrices after RRAM relaxation according to the confusion matrices (4 levels per cell)
-for seed in range(50):
+for seed in range(1):
     # Set random seed for statistics
     np.random.seed(seed)
 
     # Sweep indices
     i = args.i
-    for j in range(16):
+    for j in [14,15]:
         # Ignore diagonal entries
         if i == j:
             continue
